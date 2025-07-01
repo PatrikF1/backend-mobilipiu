@@ -10,7 +10,7 @@
     "build": "cd frontend && npm install && npm run build",
     "test-build": "echo 'Testing build process...' && npm run vercel-build && echo 'Build test completed! Check frontend/dist directory.'",
     "vercel-build": "echo 'Starting Vercel build...' && cd backend && npm install && echo 'Backend deps installed' && cd ../frontend && npm install && echo 'Frontend deps installed' && npm run build && echo 'Frontend build completed'",
-    "start": "cd backend && npm start",
+    "start": "node server.js",
     "install-deps": "npm install && cd frontend && npm install && cd ../backend && npm install"
   },
   "keywords": [
