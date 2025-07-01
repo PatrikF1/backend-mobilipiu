@@ -1,0 +1,38 @@
+{
+  "name": "mobili-piu",
+  "version": "1.0.0",
+  "description": "Mobili più - Prodaja bijele tehnike, malih kućanskih aparata i namještaja",
+  "main": "index.js",
+  "scripts": {
+    "dev": "concurrently \"npm run server\" \"npm run client\"",
+    "server": "cd backend && npm run dev",
+    "client": "cd frontend && npm run dev",
+    "build": "cd frontend && npm install && npm run build",
+    "test-build": "echo 'Testing build process...' && npm run vercel-build && echo 'Build test completed! Check frontend/dist directory.'",
+    "vercel-build": "echo 'Starting Vercel build...' && cd backend && npm install && echo 'Backend deps installed' && cd ../frontend && npm install && echo 'Frontend deps installed' && npm run build && echo 'Frontend build completed'",
+    "start": "cd backend && npm start",
+    "install-deps": "npm install && cd frontend && npm install && cd ../backend && npm install"
+  },
+  "keywords": [
+    "mobili",
+    "furniture",
+    "appliances",
+    "vue",
+    "express"
+  ],
+  "author": "Sandra Fabijanić",
+  "license": "ISC",
+  "devDependencies": {
+    "concurrently": "^8.2.2"
+  },
+  "dependencies": {
+    "@supabase/supabase-js": "^2.50.2",
+    "cors": "^2.8.5",
+    "dotenv": "^17.0.0",
+    "express": "^5.1.0",
+    "express-rate-limit": "^7.5.1",
+    "helmet": "^8.1.0",
+    "nodemailer": "^7.0.4",
+    "path-to-regexp": "^6.3.0"
+  }
+}
