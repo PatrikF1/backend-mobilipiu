@@ -95,7 +95,11 @@ const allowedOrigins = [
   'http://localhost:3003',
   'http://localhost:3004',
   'http://localhost:8080',
-  'http://localhost:8081'
+  'http://localhost:8081',
+  // Production domains
+  'https://frontend-mobilipiu.vercel.app',
+  'https://your-vercel-domain.vercel.app',
+  'https://mobili-piu.vercel.app'
 ];
 
 app.use(cors({
