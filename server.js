@@ -87,7 +87,7 @@ try {
   console.log('❌ Greška pri konfiguraciji email-a:', error.message);
 }
 
-// CORS middleware
+// CORS middleware - dozvoli sve Vercel i lokalne domene
 const allowedOrigins = [
   'http://localhost:3000',
   'http://localhost:3001',
@@ -95,19 +95,36 @@ const allowedOrigins = [
   'http://localhost:3003',
   'http://localhost:3004',
   'http://localhost:8080',
-  'http://localhost:8081',
-  // Production domains - zameni sa stvarnim Vercel URL
-  'https://your-actual-vercel-url.vercel.app'
+  'http://localhost:8081'
 ];
 
 app.use(cors({
   origin: function (origin, callback) {
+    // Uvek dozvoli zahteve bez origin (mobilne aplikacije, Postman)
     if (!origin) return callback(null, true);
+    
+    // Dozvoli sve lokalne hostove
     if (allowedOrigins.indexOf(origin) !== -1) {
       return callback(null, true);
-    } else {
-      return callback(new Error('Not allowed by CORS'));
     }
+    
+    // Dozvoli sve Vercel domene (.vercel.app)
+    if (origin && origin.includes('.vercel.app')) {
+      return callback(null, true);
+    }
+    
+    // Dozvoli sve Netlify domene (.netlify.app)
+    if (origin && origin.includes('.netlify.app')) {
+      return callback(null, true);
+    }
+    
+    // Dozvoli sve GitHub Pages (.github.io)
+    if (origin && origin.includes('.github.io')) {
+      return callback(null, true);
+    }
+    
+    // Fallback - odbaci nepoznate domene
+    return callback(new Error('Not allowed by CORS'));
   },
   credentials: true
 }));
