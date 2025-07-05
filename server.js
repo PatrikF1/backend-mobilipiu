@@ -934,6 +934,66 @@ app.post('/api/products', async (req, res) => {
   }
 });
 
+// Admin Products API - admin lista proizvoda
+app.get('/api/admin/products', async (req, res) => {
+  try {
+    if (!supabase) {
+      return res.status(400).json({
+        success: false,
+        message: 'Supabase nije konfiguriran'
+      });
+    }
+
+    console.log('📋 Admin dohvaća listu proizvoda iz Supabase...');
+
+    const { data, error } = await supabase
+      .from('products')
+      .select('*')
+      .order('created_at', { ascending: false });
+
+    if (error) {
+      console.error('❌ Greška pri dohvaćanju proizvoda:', error);
+      throw error;
+    }
+
+    console.log(`✅ Dohvaćeno ${data.length} proizvoda za admin panel`);
+
+    const formattedProducts = data.map(product => ({
+      _id: product.id.toString(),
+      name: product.name,
+      sku: product.sku,
+      description: product.description,
+      price: parseFloat(product.price),
+      originalPrice: product.original_price ? parseFloat(product.original_price) : null,
+      brand: product.brand,
+      category: product.category,
+      subcategory: product.subcategory,
+      images: product.images,
+      specifications: product.specifications,
+      inStock: product.in_stock,
+      featured: product.featured,
+      tags: product.tags,
+      warranty: product.warranty,
+      createdAt: product.created_at,
+      updatedAt: product.updated_at
+    }));
+
+    res.json({
+      success: true,
+      message: 'Proizvodi uspješno dohvaćeni',
+      data: formattedProducts
+    });
+
+  } catch (error) {
+    console.error('❌ Greška pri dohvaćanju proizvoda:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Greška pri dohvaćanju proizvoda',
+      error: error.message
+    });
+  }
+});
+
 // Admin Products API - admin dodavanje proizvoda
 app.post('/api/admin/products', async (req, res) => {
   try {
@@ -1354,8 +1414,9 @@ app.listen(PORT, () => {
   console.log(`   ✅ GET /api/contact - kontakt informacije`);
   console.log(`   ✅ POST /api/contact - slanje poruke`);
   console.log(`   🔧 POST /api/products - dodavanje proizvoda (Supabase)`);
-  console.log(`   🔧 POST /api/admin/products - admin dodavanje proizvoda (Supabase)`);
-  console.log(`   🔧 PUT /api/admin/products/:id - ažuriranje proizvoda (Supabase)`);
-  console.log(`   🔧 DELETE /api/admin/products/:id - brisanje proizvoda (Supabase)`);
+      console.log(`   🔧 GET /api/admin/products - admin lista proizvoda (Supabase)`);
+    console.log(`   🔧 POST /api/admin/products - admin dodavanje proizvoda (Supabase)`);
+    console.log(`   🔧 PUT /api/admin/products/:id - ažuriranje proizvoda (Supabase)`);
+    console.log(`   🔧 DELETE /api/admin/products/:id - brisanje proizvoda (Supabase)`);
   console.log(`🎯 ${supabase ? 'Supabase baza povezana!' : 'Mock podaci aktivni'}`);
 }); 
