@@ -95,7 +95,9 @@ const allowedOrigins = [
   'http://localhost:3003',
   'http://localhost:3004',
   'http://localhost:8080',
-  'http://localhost:8081'
+  'http://localhost:8081',
+  'https://www.mobilipiu.hr',
+  'https://mobilipiu.hr'
 ];
 
 app.use(cors({
@@ -120,6 +122,11 @@ app.use(cors({
     
     // Dozvoli sve GitHub Pages (.github.io)
     if (origin && origin.includes('.github.io')) {
+      return callback(null, true);
+    }
+    
+    // Dozvoli mobilipiu.hr domene
+    if (origin && (origin.includes('mobilipiu.hr') || origin.includes('www.mobilipiu.hr'))) {
       return callback(null, true);
     }
     
@@ -1154,47 +1161,6 @@ app.put('/api/admin/products/:id', async (req, res) => {
   }
 });
 
-// Admin Products API - brisanje proizvoda
-app.delete('/api/admin/products/:id', async (req, res) => {
-  try {
-    const { id } = req.params;
-    
-    if (!supabase) {
-      return res.status(400).json({
-        success: false,
-        message: 'Supabase nije konfiguriran'
-      });
-    }
-
-    console.log(`🗑️ Brišem proizvod ${id} iz Supabase...`);
-
-    const { error } = await supabase
-      .from('products')
-      .delete()
-      .eq('id', id);
-
-    if (error) {
-      console.error('❌ Greška pri brisanju proizvoda:', error);
-      throw error;
-    }
-
-    console.log(`✅ Proizvod uspješno obrisan: ${id}`);
-
-    res.json({
-      success: true,
-      message: 'Proizvod je uspješno obrisan'
-    });
-
-  } catch (error) {
-    console.error('❌ Greška pri brisanju proizvoda:', error);
-    res.status(500).json({
-      success: false,
-      message: 'Greška pri brisanju proizvoda',
-      error: error.message
-    });
-  }
-});
-
 app.post('/api/contact', async (req, res) => {
   const { name, email, phone, message } = req.body;
   
@@ -1414,9 +1380,11 @@ app.listen(PORT, () => {
   console.log(`   ✅ GET /api/contact - kontakt informacije`);
   console.log(`   ✅ POST /api/contact - slanje poruke`);
   console.log(`   🔧 POST /api/products - dodavanje proizvoda (Supabase)`);
-      console.log(`   🔧 GET /api/admin/products - admin lista proizvoda (Supabase)`);
-    console.log(`   🔧 POST /api/admin/products - admin dodavanje proizvoda (Supabase)`);
-    console.log(`   🔧 PUT /api/admin/products/:id - ažuriranje proizvoda (Supabase)`);
-    console.log(`   🔧 DELETE /api/admin/products/:id - brisanje proizvoda (Supabase)`);
+  console.log(`   🔧 PUT /api/admin/products/:id - ažuriranje proizvoda (Supabase)`);
+  console.log(`   🔧 DELETE /api/admin/products/:id - brisanje proizvoda (Supabase)`);
+  console.log(`   🔧 GET /api/admin/products - admin lista proizvoda (Supabase)`);
+  console.log(`   🔧 POST /api/admin/products - admin dodavanje proizvoda (Supabase)`);
+  console.log(`   🔧 PUT /api/admin/products/:id - ažuriranje proizvoda (Supabase)`);
+  console.log(`   🔧 DELETE /api/admin/products/:id - brisanje proizvoda (Supabase)`);
   console.log(`🎯 ${supabase ? 'Supabase baza povezana!' : 'Mock podaci aktivni'}`);
 }); 
