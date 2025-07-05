@@ -1161,6 +1161,52 @@ app.put('/api/admin/products/:id', async (req, res) => {
   }
 });
 
+// DELETE /api/admin/products/:id - brisanje proizvoda
+app.delete('/api/admin/products/:id', async (req, res) => {
+  try {
+    const { id } = req.params;
+    if (!supabase) {
+      return res.status(400).json({
+        success: false,
+        message: 'Supabase nije konfiguriran'
+      });
+    }
+    console.log(`🗑️ Brišem proizvod ${id} iz Supabase...`);
+    const { data, error } = await supabase
+      .from('products')
+      .delete()
+      .eq('id', id)
+      .select()
+      .single();
+    if (error) {
+      if (error.code === 'PGRST116') {
+        return res.status(404).json({
+          success: false,
+          message: 'Proizvod nije pronađen'
+        });
+      }
+      console.error('❌ Greška pri brisanju proizvoda:', error);
+      throw error;
+    }
+    console.log(`✅ Proizvod uspješno obrisan: ${id}`);
+    res.json({
+      success: true,
+      message: 'Proizvod je uspješno obrisan',
+      data: {
+        _id: data.id.toString(),
+        name: data.name
+      }
+    });
+  } catch (error) {
+    console.error('❌ Greška pri brisanju proizvoda:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Greška pri brisanju proizvoda',
+      error: error.message
+    });
+  }
+});
+
 app.post('/api/contact', async (req, res) => {
   const { name, email, phone, message } = req.body;
   
