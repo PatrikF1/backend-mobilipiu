@@ -359,9 +359,9 @@ app.get('/api/products', async (req, res) => {
         query = query.eq('featured', true);
       }
 
-      // Search po nazivu ili opisu
+      // Search po nazivu, opisu ili SKU-u
       if (search && search.trim() !== '') {
-        query = query.or(`name.ilike.%${search}%,description.ilike.%${search}%`);
+        query = query.or(`name.ilike.%${search}%,description.ilike.%${search}%,sku.ilike.%${search}%`);
       }
 
       // Sortiranje
@@ -944,6 +944,18 @@ app.post('/api/products', async (req, res) => {
 // Admin Products API - admin lista proizvoda
 app.get('/api/admin/products', async (req, res) => {
   try {
+    // Izvuci filter parametre iz query string-a
+    const { 
+      brand, 
+      category, 
+      subcategory,
+      search,
+      page = 1, 
+      limit = 50,
+      sortBy = 'created_at',
+      sortOrder = 'desc'
+    } = req.query;
+
     if (!supabase) {
       return res.status(400).json({
         success: false,
@@ -952,18 +964,50 @@ app.get('/api/admin/products', async (req, res) => {
     }
 
     console.log('📋 Admin dohvaća listu proizvoda iz Supabase...');
+    console.log('🔍 Admin filteri:', { brand, category, subcategory, search, page, limit });
 
-    const { data, error } = await supabase
+    // Kreiraj query s filterima
+    let query = supabase
       .from('products')
-      .select('*')
-      .order('created_at', { ascending: false });
+      .select('*', { count: 'exact' });
+
+    // Dodaj filtere
+    if (brand && brand !== '' && brand !== 'all') {
+      query = query.eq('brand', brand);
+    }
+
+    if (category && category !== '' && category !== 'all') {
+      query = query.eq('category', category);
+    }
+
+    if (subcategory && subcategory !== '' && subcategory !== 'all') {
+      query = query.eq('subcategory', subcategory);
+    }
+
+    // Search po nazivu, opisu ili SKU-u
+    if (search && search.trim() !== '') {
+      query = query.or(`name.ilike.%${search}%,description.ilike.%${search}%,sku.ilike.%${search}%`);
+    }
+
+    // Sortiranje
+    const ascending = sortOrder === 'asc';
+    query = query.order(sortBy, { ascending });
+
+    // Paginacija
+    const pageNumber = parseInt(page) || 1;
+    const limitNumber = parseInt(limit) || 50;
+    const offset = (pageNumber - 1) * limitNumber;
+    
+    query = query.range(offset, offset + limitNumber - 1);
+
+    const { data, error, count } = await query;
 
     if (error) {
       console.error('❌ Greška pri dohvaćanju proizvoda:', error);
       throw error;
     }
 
-    console.log(`✅ Dohvaćeno ${data.length} proizvoda za admin panel`);
+    console.log(`✅ Dohvaćeno ${data.length} proizvoda za admin panel (ukupno: ${count})`);
 
     const formattedProducts = data.map(product => ({
       _id: product.id.toString(),
@@ -985,10 +1029,25 @@ app.get('/api/admin/products', async (req, res) => {
       updatedAt: product.updated_at
     }));
 
+    // Paginacija kalkulacije
+    const totalProducts = count || 0;
+    const totalPages = Math.ceil(totalProducts / limitNumber);
+    const hasNext = pageNumber < totalPages;
+    const hasPrev = pageNumber > 1;
+
     res.json({
       success: true,
       message: 'Proizvodi uspješno dohvaćeni',
-      data: formattedProducts
+      data: formattedProducts,
+      pagination: {
+        currentPage: pageNumber,
+        totalPages,
+        totalProducts,
+        hasNext,
+        hasPrev,
+        limit: limitNumber
+      },
+      filters: { brand, category, subcategory, search }
     });
 
   } catch (error) {
